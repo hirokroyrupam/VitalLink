@@ -4,6 +4,38 @@ import java.awt.*;
 import java.util.List;
 import java.util.ArrayList;
 
+interface SearchStrategy {
+    List<Donor> filter(List<Donor> donors, String value);
+}
+
+class IdSearchStrategy implements SearchStrategy {
+    public List<Donor> filter(List<Donor> donors, String value) {
+        donors.removeIf(d -> !d.getId().equalsIgnoreCase(value));
+        return donors;
+    }
+}
+
+class NameSearchStrategy implements SearchStrategy {
+    public List<Donor> filter(List<Donor> donors, String value) {
+        donors.removeIf(d -> !d.getName().toLowerCase().contains(value.toLowerCase()));
+        return donors;
+    }
+}
+
+class AddressSearchStrategy implements SearchStrategy {
+    public List<Donor> filter(List<Donor> donors, String value) {
+        donors.removeIf(d -> !d.getAddress().toLowerCase().contains(value.toLowerCase()));
+        return donors;
+    }
+}
+
+class BloodSearchStrategy implements SearchStrategy {
+    public List<Donor> filter(List<Donor> donors, String value) {
+        donors.removeIf(d -> !d.getBlood().equals(value));
+        return donors;
+    }
+}
+
 public class SearchDonorPanel extends JPanel {
     private JTable table;
     private DefaultTableModel model;
@@ -83,10 +115,10 @@ public class SearchDonorPanel extends JPanel {
 
             List<Donor> results = new ArrayList<>(DonorManager.getInstance().getAllDonors());
 
-            if(!id.isEmpty()) results.removeIf(d -> !d.getId().equalsIgnoreCase(id));
-            if(!name.isEmpty()) results.removeIf(d -> !d.getName().toLowerCase().contains(name.toLowerCase()));
-            if(!address.isEmpty()) results.removeIf(d -> !d.getAddress().toLowerCase().contains(address.toLowerCase()));
-            if(!blood.isEmpty()) results.removeIf(d -> !d.getBlood().equals(blood));
+            if(!id.isEmpty()) results = new IdSearchStrategy().filter(results, id);
+            if(!name.isEmpty()) results = new NameSearchStrategy().filter(results, name);
+            if(!address.isEmpty()) results = new AddressSearchStrategy().filter(results, address);
+            if(!blood.isEmpty()) results = new BloodSearchStrategy().filter(results, blood);
 
             results.sort((d1,d2)->d1.getId().compareTo(d2.getId()));
             updateTable(results);
